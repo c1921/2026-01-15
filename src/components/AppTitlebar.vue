@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { emit } from "@tauri-apps/api/event";
+import { isTauri } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { WINDOW_PIN_EVENT_NAME } from "../windows/windowEvents";
 
@@ -21,10 +22,7 @@ const props = withDefaults(
   }
 );
 
-const isTauri =
-  typeof window !== "undefined" &&
-  typeof (window as { __TAURI__?: unknown }).__TAURI__ !== "undefined";
-const appWindow = isTauri ? getCurrentWindow() : null;
+const appWindow = isTauri() ? getCurrentWindow() : null;
 const isPinned = ref(false);
 
 onMounted(async () => {
