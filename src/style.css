@@ -1,0 +1,62 @@
+@import "tailwindcss";
+@plugin "flyonui" {
+    themes: light --default, mydark --prefersdark;
+}
+@import "flyonui/variants.css";
+@source "../node_modules/flyonui/flyonui.js";
+@plugin "@iconify/tailwind4";
+
+@layer base {
+    html {
+        font-size: 12px;
+    }
+
+    body {
+        user-select: none;
+    }
+
+    input,
+    textarea,
+    [contenteditable="true"] {
+        user-select: text;
+    }
+    /* 禁用所有 button 的按下缩放效果 */
+    button:active {
+        scale: 1 !important;
+    }
+}
+
+@plugin "flyonui/theme" {
+    name: "mydark";
+    default: false;
+    prefersdark: true;
+    color-scheme: dark;
+    --color-base-100: oklch(36% 0 0);
+    --color-base-200: oklch(30.92% 0 0);
+    --color-base-300: oklch(20.9% 0 0);
+    --color-base-content: oklch(92.49% 0.001 286.375);
+    --color-primary: oklch(71% 0.15 239.15);
+    --color-primary-content: oklch(94% 0.03 232.39);
+    --color-secondary: oklch(73.6% 0.151 0);
+    --color-secondary-content: oklch(100% 0.084 19);
+    --color-accent: oklch(56.36% 0.017 273.66);
+    --color-accent-content: oklch(86% 0.022 252.894);
+    --color-neutral: oklch(39% 0 0);
+    --color-neutral-content: oklch(75.3% 0 0);
+    --color-info: oklch(60% 0.1 269.83);
+    --color-info-content: oklch(100% 0.123 272.800);
+    --color-success: oklch(0.4644 0.084 144.75);
+    --color-success-content: oklch(100% 0.067 153.600);
+    --color-warning: oklch(72.6% 0.271 100.650);
+    --color-warning-content: oklch(100% 0.036 44);
+    --color-error: oklch(33.7% 0.184 19.690);
+    --color-error-content: oklch(100% 0.114 25.300);
+    --radius-selector: 0.5rem;
+    --radius-field: 0.25rem;
+    --radius-box: 0.5rem;
+    --size-selector: 0.25rem;
+    --size-field: 0.1875rem;
+    --border: 1px;
+    --depth: 0;
+    --noise: 0;
+}
