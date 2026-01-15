@@ -3,11 +3,11 @@
     "c-0-0": {
       "name": "Westmarch",
       "color": "#7A9E3F",
-      "parentId": "d-k-0-0-0-0"
+      "parentId": "d-0-0"
     }
   },
   "duchies": {
-    "d-k-0-0-0-0": {
+    "d-0-0": {
       "name": "Green March",
       "color": "#3E7B63",
       "parentId": "k-0-0"

@@ -4,6 +4,7 @@ import {
   getRegionId,
   getRegionColor,
   type MapMode,
+  type RegionOverrides,
   type WorldMapData,
 } from "../map/mapModel";
 
@@ -12,6 +13,7 @@ interface Props {
   mapMode: MapMode;
   tileSize?: number;
   selectedRegionId?: string | null;
+  regionOverrides?: RegionOverrides;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -73,7 +75,7 @@ const draw = () => {
       const regionId = getRegionId(tile, props.mapMode);
       regionIds[index] = regionId;
 
-      ctx.fillStyle = getRegionColor(props.mapMode, regionId);
+      ctx.fillStyle = getRegionColor(props.mapMode, regionId, props.regionOverrides);
       ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
     }
   }
