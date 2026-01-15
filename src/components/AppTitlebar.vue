@@ -21,27 +21,34 @@ const props = withDefaults(
   }
 );
 
-const appWindow = getCurrentWindow();
+const isTauri =
+  typeof window !== "undefined" &&
+  typeof (window as { __TAURI__?: unknown }).__TAURI__ !== "undefined";
+const appWindow = isTauri ? getCurrentWindow() : null;
 const isPinned = ref(false);
 
 onMounted(async () => {
+  if (!appWindow) return;
   isPinned.value = await appWindow.isAlwaysOnTop();
 });
 
 function minimize() {
+  if (!appWindow) return;
   appWindow.minimize();
 }
 
 function toggleMaximize() {
+  if (!appWindow) return;
   appWindow.toggleMaximize();
 }
 
 async function startDrag(event: MouseEvent) {
-  if (event.button !== 0) return;
+  if (event.button !== 0 || !appWindow) return;
   await appWindow.startDragging();
 }
 
 async function togglePin() {
+  if (!appWindow) return;
   const next = !isPinned.value;
   await appWindow.setAlwaysOnTop(next);
   isPinned.value = next;
@@ -49,6 +56,7 @@ async function togglePin() {
 }
 
 async function closeWindow() {
+  if (!appWindow) return;
   if (props.closeToTray) {
     await appWindow.minimize();
     await appWindow.hide();

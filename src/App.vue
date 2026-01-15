@@ -4,6 +4,10 @@ import AppTitlebar from "./components/AppTitlebar.vue";
 import VerticalTabs from "./components/VerticalTabs.vue";
 import BottomBar from "./components/BottomBar.vue";
 
+const isTauri =
+  typeof window !== "undefined" &&
+  typeof (window as { __TAURI__?: unknown }).__TAURI__ !== "undefined";
+
 onMounted(() => {
   setTimeout(() => window.HSStaticMethods.autoInit(), 100)
 });
@@ -12,7 +16,7 @@ onMounted(() => {
 <template>
 
   <div class="flex h-screen flex-col bg-base-200 font-sans text-base-content">
-    <header>
+    <header v-if="isTauri">
       <AppTitlebar :close-to-tray="true" />
     </header>
     <div class="flex-1 min-h-0 overflow-hidden">
