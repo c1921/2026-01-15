@@ -2,7 +2,7 @@
 import { onBeforeUnmount, onMounted, ref, watchEffect } from "vue";
 import {
   getRegionId,
-  hashColor,
+  getRegionColor,
   type MapMode,
   type WorldMapData,
 } from "../map/mapModel";
@@ -73,7 +73,7 @@ const draw = () => {
       const regionId = getRegionId(tile, props.mapMode);
       regionIds[index] = regionId;
 
-      ctx.fillStyle = hashColor(regionId);
+      ctx.fillStyle = getRegionColor(props.mapMode, regionId);
       ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
     }
   }

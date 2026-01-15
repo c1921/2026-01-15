@@ -3,7 +3,7 @@ import { computed, ref, watch } from "vue";
 import GridMap from "./GridMap.vue";
 import { createWorldMap, getRegionInfo, type MapMode } from "../map/mapModel";
 
-const mapData = createWorldMap(24, 24);
+const mapData = createWorldMap(8, 8);
 
 const mapMode = ref<MapMode>("county");
 const selectedRegionId = ref<string | null>(null);
@@ -67,6 +67,17 @@ watch(mapMode, () => {
               <div class="flex items-center justify-between">
                 <span class="text-base-content/70">Region Id</span>
                 <span class="font-mono">{{ regionInfo.id }}</span>
+              </div>
+              <div v-if="regionInfo.name" class="flex items-center justify-between">
+                <span class="text-base-content/70">Name</span>
+                <span class="font-mono">{{ regionInfo.name }}</span>
+              </div>
+              <div v-if="regionInfo.color" class="flex items-center justify-between">
+                <span class="text-base-content/70">Color</span>
+                <span class="flex items-center gap-2 font-mono">
+                  <span class="h-3 w-3 rounded-full" :style="{ backgroundColor: regionInfo.color }"></span>
+                  {{ regionInfo.color }}
+                </span>
               </div>
               <div class="flex items-center justify-between">
                 <span class="text-base-content/70">Level</span>

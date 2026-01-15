@@ -1,0 +1,28 @@
+{
+  "counties": {
+    "c-0-0": {
+      "name": "Westmarch",
+      "color": "#7A9E3F",
+      "parentId": "d-k-0-0-0-0"
+    }
+  },
+  "duchies": {
+    "d-k-0-0-0-0": {
+      "name": "Green March",
+      "color": "#3E7B63",
+      "parentId": "k-0-0"
+    }
+  },
+  "kingdoms": {
+    "k-0-0": {
+      "name": "Verdant Crown",
+      "color": "#2F6F8F",
+      "parentId": "e-0"
+    }
+  },
+  "empire": {
+    "name": "Azure Imperium",
+    "color": "#4E5D8A",
+    "parentId": null
+  }
+}

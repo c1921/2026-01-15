@@ -1,3 +1,5 @@
+import regionOverrides from "./regionOverrides.json";
+
 export type MapMode = "county" | "duchy" | "kingdom" | "empire";
 
 export interface Tile {
@@ -43,18 +45,78 @@ export interface WorldMapData {
   empire: Empire;
 }
 
+export interface RegionMeta {
+  name?: string;
+  color?: string;
+  parentId?: string | null;
+}
+
 export interface RegionInfo {
   id: string;
   mode: MapMode;
   tileCount: number;
   parentId: string | null;
+  name?: string;
+  color?: string;
 }
 
-const KINGDOM_SIZE = 12;
-const DUCHY_SIZE = 3;
+interface RegionOverrides {
+  counties?: Record<string, RegionMeta>;
+  duchies?: Record<string, RegionMeta>;
+  kingdoms?: Record<string, RegionMeta>;
+  empire?: RegionMeta;
+}
+
+const KINGDOM_SIZE = 4;
+const DUCHY_SIZE = 2;
 const EMPIRE_ID = "e-0";
 
-export function createWorldMap(width = 24, height = 24): WorldMapData {
+const regionOverrideData = regionOverrides as RegionOverrides;
+
+const getRegionOverride = (mode: MapMode, regionId: string): RegionMeta | undefined => {
+  switch (mode) {
+    case "county":
+      return regionOverrideData.counties?.[regionId];
+    case "duchy":
+      return regionOverrideData.duchies?.[regionId];
+    case "kingdom":
+      return regionOverrideData.kingdoms?.[regionId];
+    case "empire":
+      return regionOverrideData.empire;
+    default:
+      return undefined;
+  }
+};
+
+const resolveParentId = (
+  override: RegionMeta | undefined,
+  fallback: string | null,
+): string | null => {
+  if (!override) return fallback;
+  if (Object.prototype.hasOwnProperty.call(override, "parentId")) {
+    return override.parentId ?? null;
+  }
+  return fallback;
+};
+
+const buildRegionInfo = (
+  mode: MapMode,
+  id: string,
+  tileCount: number,
+  defaultParentId: string | null,
+): RegionInfo => {
+  const override = getRegionOverride(mode, id);
+  return {
+    id,
+    mode,
+    tileCount,
+    parentId: resolveParentId(override, defaultParentId),
+    name: override?.name,
+    color: override?.color,
+  };
+};
+
+export function createWorldMap(width = 8, height = 8): WorldMapData {
   const tiles: Tile[] = [];
   const counties: Record<string, County> = {};
   const duchies: Record<string, Duchy> = {};
@@ -138,23 +200,13 @@ export function getRegionInfo(
   if (mode === "county") {
     const county = mapData.counties[regionId];
     if (!county) return null;
-    return {
-      id: county.id,
-      mode,
-      tileCount: county.tileIds.length,
-      parentId: county.duchyId,
-    };
+    return buildRegionInfo(mode, county.id, county.tileIds.length, county.duchyId);
   }
 
   if (mode === "duchy") {
     const duchy = mapData.duchies[regionId];
     if (!duchy) return null;
-    return {
-      id: duchy.id,
-      mode,
-      tileCount: duchy.countyIds.length,
-      parentId: duchy.kingdomId,
-    };
+    return buildRegionInfo(mode, duchy.id, duchy.countyIds.length, duchy.kingdomId);
   }
 
   if (mode === "kingdom") {
@@ -164,24 +216,24 @@ export function getRegionInfo(
       const duchy = mapData.duchies[duchyId];
       return total + (duchy ? duchy.countyIds.length : 0);
     }, 0);
-    return {
-      id: kingdom.id,
-      mode,
-      tileCount,
-      parentId: kingdom.empireId,
-    };
+    return buildRegionInfo(mode, kingdom.id, tileCount, kingdom.empireId);
   }
 
   if (mode === "empire") {
-    return {
-      id: mapData.empire.id,
+    return buildRegionInfo(
       mode,
-      tileCount: mapData.width * mapData.height,
-      parentId: null,
-    };
+      mapData.empire.id,
+      mapData.width * mapData.height,
+      null,
+    );
   }
 
   return null;
+}
+
+export function getRegionColor(mode: MapMode, regionId: string): string {
+  const override = getRegionOverride(mode, regionId);
+  return override?.color ?? hashColor(regionId);
 }
 
 export function hashColor(id: string): string {
