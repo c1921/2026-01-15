@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watchEffect } from "vue";
+import { onBeforeUnmount, onMounted, ref, watchEffect } from "vue";
 import {
   getRegionId,
   hashColor,
@@ -23,7 +23,10 @@ const emit = defineEmits<{
   (event: "select", regionId: string): void;
 }>();
 
+const containerRef = ref<HTMLDivElement | null>(null);
 const canvasRef = ref<HTMLCanvasElement | null>(null);
+const containerSize = ref({ width: 0, height: 0 });
+let resizeObserver: ResizeObserver | null = null;
 const scale = ref(1);
 const offsetX = ref(0);
 const offsetY = ref(0);
@@ -44,13 +47,20 @@ const draw = () => {
   const tileSize = props.tileSize;
   const dpr = window.devicePixelRatio || 1;
 
-  canvas.width = width * tileSize * dpr;
-  canvas.height = height * tileSize * dpr;
-  canvas.style.width = `${width * tileSize}px`;
-  canvas.style.height = `${height * tileSize}px`;
+  if (!containerSize.value.width || !containerSize.value.height) {
+    return;
+  }
+
+  const canvasWidth = containerSize.value.width;
+  const canvasHeight = containerSize.value.height;
+
+  canvas.width = canvasWidth * dpr;
+  canvas.height = canvasHeight * dpr;
+  canvas.style.width = `${canvasWidth}px`;
+  canvas.style.height = `${canvasHeight}px`;
 
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.clearRect(0, 0, width * tileSize, height * tileSize);
+  ctx.clearRect(0, 0, canvasWidth, canvasHeight);
   ctx.translate(offsetX.value, offsetY.value);
   ctx.scale(scale.value, scale.value);
 
@@ -182,17 +192,39 @@ const handlePointerUp = (event: PointerEvent) => {
   canvas.releasePointerCapture(event.pointerId);
 };
 
+onMounted(() => {
+  const container = containerRef.value;
+  if (!container) return;
+
+  const updateSize = () => {
+    const rect = container.getBoundingClientRect();
+    containerSize.value = {
+      width: Math.floor(rect.width),
+      height: Math.floor(rect.height),
+    };
+  };
+
+  updateSize();
+  resizeObserver = new ResizeObserver(updateSize);
+  resizeObserver.observe(container);
+});
+
 onMounted(draw);
 watchEffect(draw);
+
+onBeforeUnmount(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+    resizeObserver = null;
+  }
+});
 </script>
 
 <template>
-  <div
-    class="grid place-items-center overflow-hidden bg-base-100"
-  >
+  <div ref="containerRef" class="grid h-full w-full place-items-center overflow-hidden bg-base-100">
     <canvas
       ref="canvasRef"
-      class="active:cursor-grabbing touch-none"
+      class="h-full w-full active:cursor-grabbing touch-none"
       @click="handleClick"
       @wheel="handleWheel"
       @pointerdown="handlePointerDown"
