@@ -67,6 +67,13 @@ export interface RegionOverrides {
   empire?: RegionMeta;
 }
 
+interface OklchColor {
+  l: number;
+  c: number;
+  h: number;
+  alpha?: string;
+}
+
 const KINGDOM_SIZE = 4;
 const DUCHY_SIZE = 2;
 const EMPIRE_ID = "e-0";
@@ -75,6 +82,61 @@ const defaultRegionOverrides = regionOverrides as RegionOverrides;
 
 export const cloneRegionOverrides = (): RegionOverrides =>
   JSON.parse(JSON.stringify(defaultRegionOverrides)) as RegionOverrides;
+
+const OKLCH_REGEX =
+  /^oklch\(\s*([0-9]+(?:\.[0-9]+)?)%\s+([0-9]+(?:\.[0-9]+)?)\s+([0-9]+(?:\.[0-9]+)?)(?:\s*\/\s*([0-9]+(?:\.[0-9]+)?%?))?\s*\)$/i;
+
+const parseOklch = (value: string): OklchColor | null => {
+  const match = value.match(OKLCH_REGEX);
+  if (!match) return null;
+  return {
+    l: Number(match[1]),
+    c: Number(match[2]),
+    h: Number(match[3]),
+    alpha: match[4],
+  };
+};
+
+const formatOklch = (color: OklchColor): string => {
+  const alpha = color.alpha ? ` / ${color.alpha}` : "";
+  return `oklch(${color.l.toFixed(2)}% ${color.c.toFixed(3)} ${color.h.toFixed(
+    2,
+  )}${alpha})`;
+};
+
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, value));
+
+const hashString = (value: string): number => {
+  let hash = 0;
+  for (let i = 0; i < value.length; i += 1) {
+    hash = (hash << 5) - hash + value.charCodeAt(i);
+    hash |= 0;
+  }
+  return hash;
+};
+
+const randomFromHash = (hash: number, salt: number): number => {
+  let x = (hash ^ (salt * 0x9e3779b9)) >>> 0;
+  x ^= x << 13;
+  x ^= x >>> 17;
+  x ^= x << 5;
+  return (x >>> 0) / 4294967295;
+};
+
+const deriveOklch = (base: OklchColor, seed: string): OklchColor => {
+  const hash = hashString(seed);
+  const deltaL = (randomFromHash(hash, 1) * 2 - 1) * 12;
+  const deltaC = (randomFromHash(hash, 2) * 2 - 1) * 0.045;
+  const deltaH = (randomFromHash(hash, 3) * 2 - 1) * 24;
+
+  return {
+    l: clamp(base.l + deltaL, 0, 100),
+    c: Math.max(0, base.c + deltaC),
+    h: ((base.h + deltaH) % 360 + 360) % 360,
+    alpha: base.alpha,
+  };
+};
 
 const getRegionOverride = (
   mode: MapMode,
@@ -320,17 +382,44 @@ export function getRegionColor(
   mode: MapMode,
   regionId: string,
   overrides?: RegionOverrides,
+  mapData?: WorldMapData,
 ): string {
   const override = getRegionOverride(mode, regionId, overrides);
-  return override?.color ?? hashColor(regionId);
+  if (override?.color) return override.color;
+
+  if (mapData) {
+    let parentMode: MapMode | null = null;
+    let parentId: string | null = null;
+
+    if (mode === "county") {
+      parentMode = "duchy";
+      parentId = mapData.counties[regionId]?.duchyId ?? null;
+    } else if (mode === "duchy") {
+      parentMode = "kingdom";
+      parentId = mapData.duchies[regionId]?.kingdomId ?? null;
+    } else if (mode === "kingdom") {
+      parentMode = "empire";
+      parentId = mapData.kingdoms[regionId]?.empireId ?? null;
+    }
+
+    if (parentMode && parentId) {
+      const parentColor = getRegionColor(
+        parentMode,
+        parentId,
+        overrides,
+        mapData,
+      );
+      const parsed = parseOklch(parentColor);
+      if (parsed) {
+        return formatOklch(deriveOklch(parsed, regionId));
+      }
+    }
+  }
+
+  return hashColor(regionId);
 }
 
 export function hashColor(id: string): string {
-  let hash = 0;
-  for (let i = 0; i < id.length; i += 1) {
-    hash = (hash << 5) - hash + id.charCodeAt(i);
-    hash |= 0;
-  }
-  const hue = Math.abs(hash) % 360;
+  const hue = Math.abs(hashString(id)) % 360;
   return `hsl(${hue}, 55%, 55%)`;
 }

@@ -1,28 +1,30 @@
 {
   "counties": {
-    "c-0-0": {
-      "name": "Westmarch",
-      "color": "#7A9E3F",
-      "parentId": "d-0-0"
-    }
   },
   "duchies": {
-    "d-0-0": {
-      "name": "Green March",
-      "color": "#3E7B63",
-      "parentId": "k-0-0"
-    }
   },
   "kingdoms": {
     "k-0-0": {
-      "name": "Verdant Crown",
-      "color": "#2F6F8F",
+      "name": "爱尔兰王国",
+      "color": "oklch(46.29% 0.1779 140.83)",
       "parentId": "e-0"
+    },
+    "k-1-1": {
+      "name": "英格兰王国",
+      "color": "oklch(43.83% 0.1779 27.77)"
+    },
+    "k-0-1": {
+      "name": "苏格兰王国",
+      "color": "oklch(46.29% 0.1779 264.93)"
+    },
+    "k-1-0": {
+      "name": "威尔士王国",
+      "color": "oklch(48.96% 0.0812 89.73)"
     }
   },
   "empire": {
-    "name": "Azure Imperium",
-    "color": "#4E5D8A",
+    "name": "不列颠尼亚帝国",
+    "color": "oklch(39.74% 0.1779 27.77)",
     "parentId": null
   }
 }

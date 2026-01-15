@@ -75,7 +75,12 @@ const draw = () => {
       const regionId = getRegionId(tile, props.mapMode);
       regionIds[index] = regionId;
 
-      ctx.fillStyle = getRegionColor(props.mapMode, regionId, props.regionOverrides);
+      ctx.fillStyle = getRegionColor(
+        props.mapMode,
+        regionId,
+        props.regionOverrides,
+        props.mapData,
+      );
       ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
     }
   }
